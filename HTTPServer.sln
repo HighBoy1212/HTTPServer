@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2009
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31605.320
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HTTPServer", "HTTPServer\HTTPServer.csproj", "{9435F620-0892-4ED7-8F9E-A757C0FCA6FA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HTTPTest", "HTTPTest\HTTPTest.csproj", "{9DC40B60-270F-43A8-AAF2-8348785CAA0B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HTTPLib", "HTTPLib\HTTPLib.csproj", "{A867BB9A-001B-4072-B628-06F3F09706D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetOptions", "GetOptions\GetOptions.csproj", "{19171924-9D09-40E4-8E17-734BB1E8A35E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{A867BB9A-001B-4072-B628-06F3F09706D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A867BB9A-001B-4072-B628-06F3F09706D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A867BB9A-001B-4072-B628-06F3F09706D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19171924-9D09-40E4-8E17-734BB1E8A35E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19171924-9D09-40E4-8E17-734BB1E8A35E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19171924-9D09-40E4-8E17-734BB1E8A35E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19171924-9D09-40E4-8E17-734BB1E8A35E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
