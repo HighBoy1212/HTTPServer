@@ -8,7 +8,8 @@ namespace HTTPLib {
         // Fields
         private string strStatusLine;
         private List<string> lstHeaders;
-        private Stream sBody;
+        // Check this, but if a 
+        private Stream sBody = Stream.Null;
 
         public string Status
         {
@@ -40,6 +41,9 @@ namespace HTTPLib {
         }
         public void Send(Stream strmOut)
         {
+            // NEED TO: Convert the response into bytes (in blocks of 1024 bytes)
+            // and write it to strmOut
+
             string strHeaders = "";
             foreach(string strH in lstHeaders)
             {

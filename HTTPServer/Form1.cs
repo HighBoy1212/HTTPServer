@@ -11,22 +11,28 @@ using System.Diagnostics;
 using System.Web;
 using HTTPLib;
 
-// push
 namespace HTTPServer
 {
     public partial class Form1 : Form
     {
         // Dictionary for server configuration info
         Dictionary<string, string> dictServerConfig = new Dictionary<string, string>();
+        // Dictionary for plugins
+        Dictionary<string, IHTTPMethodHandler> dictPlugins = new Dictionary<string, IHTTPMethodHandler>();
+
 
         // Listening socket
         private Socket socListen = null;
+
+        // Do we need a Network Stream?
+        private NetworkStream nsStream = null;
 
         public Form1()
         {
             InitializeComponent();
             // Load all method plugins from the Plugins dictionary
             Dictionary<string, IHTTPMethodHandler> dictPlugins = new Dictionary<string, IHTTPMethodHandler>();
+
             // Value needs to be whatever we choose to name our server
             dictServerConfig.Add("ServerName", "");
             // Value needs to be the absolute path of the document root directory
@@ -89,25 +95,47 @@ namespace HTTPServer
         // CHECK THIS FUNCTION
         private void vProcessRequests(Socket socConnection)
         {
+            // These are parameters HTTPResponse needs
+            string strStatus = "";
+            List<string> lstHeaders = new List<string>();
+
             // Use the method in HTTPLib to receive and parse the HTTP request
+            // Receive method needs a stream as a parameter. 
+            nsStream = new NetworkStream(socConnection);
+            HTTPRequest hrRequest = HTTPRequest.Receive(nsStream);
 
             bool bRunning = true;
+            // Need to see whether the method is GET, OPTIONS, or neither,
+            // call the correct method handler, then send the response to the client
             while (bRunning)
             {
-                // CHECK THIS LINE
-                (string strCmd, string strArg) = HTTPLib.HTTPRequest();
-                switch (strCmd.ToUpper())
-                {
-                    case "GET":
-                        HTTPLib.GenResponse();
-                        break;
-                    case "OPTIONS":
+                // Method, URI, Version, Headers (dict)
+                (string strMethod, string strURI, string strVersion, Dictionary<string, string> dictHdrs) = hrRequest;
+                    switch (strMethod.ToUpper())
+                    {
+                        case "GET":
+                            // Need to call the "GET" version of GenResponse
+                            GenResponse(hrRequest, dictPlugins, dictServerConfig);
 
-                        break;
-                    default:
-                        // Method is not GET or OPTIONS, we don't need to worry about it.
+                            nsStream.Close();
+                            bRunning = false;
+                            break;
+                        case "OPTIONS":
+                            // Need to call the "OPTIONS' version of GenResponse
+                            GenResponse(hrRequest, dictPlugins, dictServerConfig);
 
-                        break;
+                            nsStream.Close();
+                            bRunning = false;
+                            break;
+                        default:
+                            // Method is not GET or OPTIONS, send a response saying
+                            // "HTTP/1.1 405 Method Not Allowed"
+                            strStatus = "HTTP/1.1 405 Method Not Allowed";
+
+                            nsStream.Close();
+                            bRunning = false;
+                            break;
+                    }
                 }
             }
         }
