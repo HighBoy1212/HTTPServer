@@ -44,26 +44,7 @@ namespace HTTPLib {
             // NEED TO: Convert the response into bytes (in blocks of 1024 bytes)
             // and write it to strmOut
 
-            string strHeaders = "";
-            foreach(string strH in lstHeaders)
-            {
-                if(strH == "Connection")
-                {
-                    strHeaders += strH + ": close \r\n";
-                }
-                else if (strH == "Date")
-                {
-                    strHeaders += strH + ": " + DateTime.Now.ToString("r");
-                }
-                else if (strH == "Server")
-                {
-                    strHeaders += strH + ": " + "some name";
-                }
-                else if (strH == "Allow")
-                {
-
-                }
-            }
+            
 
         }
     }
