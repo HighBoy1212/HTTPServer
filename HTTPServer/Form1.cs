@@ -10,6 +10,8 @@ using System.Net.Sockets;
 using System.Diagnostics;
 using System.Web;
 using HTTPLib;
+using System.IO;
+using System.Reflection;
 
 namespace HTTPServer
 {
@@ -30,17 +32,9 @@ namespace HTTPServer
         public Form1()
         {
             InitializeComponent();
-            // Load all method plugins from the Plugins dictionary
-            Dictionary<string, IHTTPMethodHandler> dictPlugins = new Dictionary<string, IHTTPMethodHandler>();
-
-            // Value needs to be whatever we choose to name our server
-            dictServerConfig.Add("ServerName", "");
-            // Value needs to be the absolute path of the document root directory
-            // (concatenate the path of the document root to  the URI)
-            dictServerConfig.Add("DocumentRoot", "");
         }
 
-        private void btnStartStop_Click(object sender, EventArgs e)
+        private void btnStartStop_Click_1(object sender, EventArgs e)
         {
             if (btnStartStop.Text == "Start")
             {
@@ -95,49 +89,64 @@ namespace HTTPServer
         // CHECK THIS FUNCTION
         private void vProcessRequests(Socket socConnection)
         {
-            // These are parameters HTTPResponse needs
-            string strStatus = "";
-            List<string> lstHeaders = new List<string>();
-
             // Use the method in HTTPLib to receive and parse the HTTP request
             // Receive method needs a stream as a parameter. 
             nsStream = new NetworkStream(socConnection);
             HTTPRequest hrRequest = HTTPRequest.Receive(nsStream);
 
-            bool bRunning = true;
             // Need to see whether the method is GET, OPTIONS, or neither,
             // call the correct method handler, then send the response to the client
-            while (bRunning)
+            if (dictPlugins.ContainsKey(hrRequest.Method.ToUpper()))
             {
-                // Method, URI, Version, Headers (dict)
-                (string strMethod, string strURI, string strVersion, Dictionary<string, string> dictHdrs) = hrRequest;
-                    switch (strMethod.ToUpper())
+                HTTPResponse Response = dictPlugins[hrRequest.Method.ToUpper()].GenResponse(hrRequest, dictPlugins, dictServerConfig);
+                Response.Send(nsStream);
+            }
+            else
+            {
+                string strResponse = "HTTP/1.1 405 Method Not Allowed \r\n Allow:";
+                foreach(string strKey in dictPlugins.Keys)
+                {
+                    strResponse += strKey + " ";
+                }
+                byte[] byResponse = Encoding.ASCII.GetBytes(strResponse);
+                nsStream.Write(byResponse, 0, byResponse.Length);
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // Load all of the plugin DLL's that are listed in the file PluginList.txt
+            using (StreamReader srPlugins = new StreamReader("Plugins\\PluginList.txt"))
+            {
+                // Read a line from the file
+                string strOneLine = srPlugins.ReadLine();
+                // The line read is a valid line from the file if it is not null
+                while (strOneLine != null)
+                {
+                    // Construct the complete file name
+                    string strFileName = "Plugins\\" + strOneLine;
+                    Assembly asmMethod = Assembly.LoadFrom(strFileName);
+                    // Loop through the types exported by the DLL, create an instance of each one
+                    // and add the instance to the list of operations
+                    foreach (Type tMethod in asmMethod.ExportedTypes)
                     {
-                        case "GET":
-                            // Need to call the "GET" version of GenResponse
-                            GenResponse(hrRequest, dictPlugins, dictServerConfig);
-
-                            nsStream.Close();
-                            bRunning = false;
-                            break;
-                        case "OPTIONS":
-                            // Need to call the "OPTIONS' version of GenResponse
-                            GenResponse(hrRequest, dictPlugins, dictServerConfig);
-
-                            nsStream.Close();
-                            bRunning = false;
-                            break;
-                        default:
-                            // Method is not GET or OPTIONS, send a response saying
-                            // "HTTP/1.1 405 Method Not Allowed"
-                            strStatus = "HTTP/1.1 405 Method Not Allowed";
-
-                            nsStream.Close();
-                            bRunning = false;
-                            break;
+                        // Create an instance of the type and add it to the list
+                        try
+                        {
+                            IHTTPMethodHandler IMethod = (IHTTPMethodHandler)asmMethod.CreateInstance(tMethod.FullName);
+                            dictPlugins.Add(IMethod.MethodName.ToUpper(), IMethod);
+                        }
+                        catch { }
                     }
+                    // Read the next line from the file
+                    strOneLine = srPlugins.ReadLine();
                 }
             }
+            // Value needs to be whatever we choose to name our server
+            dictServerConfig.Add("ServerName", "Final Project");
+            // Value needs to be the absolute path of the document root directory
+            // (concatenate the path of the document root to  the URI)
+            dictServerConfig.Add("DocumentRoot", "");
         }
     }
 }

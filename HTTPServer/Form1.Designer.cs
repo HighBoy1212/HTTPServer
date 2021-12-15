@@ -35,6 +35,7 @@
             this.btnStartStop.TabIndex = 0;
             this.btnStartStop.Text = "Start";
             this.btnStartStop.UseVisualStyleBackColor = true;
+            this.btnStartStop.Click += new System.EventHandler(this.btnStartStop_Click_1);
             // 
             // rtbLog
             // 
@@ -56,6 +57,7 @@
             this.Controls.Add(this.btnStartStop);
             this.Name = "Form1";
             this.Text = "HTTP Server";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
 
         }

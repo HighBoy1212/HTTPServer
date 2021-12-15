@@ -7,11 +7,10 @@ namespace HTTPLib {
     public class HTTPResponse {
         // Fields
         private string strStatusLine;
-        private List<string> lstHeaders;
-        // Check this, but if a 
-        private Stream sBody = Stream.Null;
+        private List<string> lstHeaders; 
+        private Stream sBody;
 
-        public HTTPResponse(string strStatus, List<string> Headers, Stream Body)
+        public HTTPResponse(string strStatus, List<string> Headers, Stream Body = null)
         {
             strStatusLine = strStatus;
             lstHeaders = Headers;
@@ -33,10 +32,15 @@ namespace HTTPLib {
             // Send status, then headers, then body
             strmOut.Write(byStatus, 0, byStatus.Length);
             strmOut.Write(byHeaders, 0, byHeaders.Length);
-            byte[] byBody = new byte[1024];
-            int iBytesRead;
-            while ((iBytesRead = sBody.Read(byBody, 0, 1024)) > 0){
-                strmOut.Write(byBody, 0, iBytesRead);
+            if (sBody != null)
+            {
+                byte[] byBody = new byte[1024];
+                int iBytesRead;
+                while ((iBytesRead = sBody.Read(byBody, 0, 1024)) > 0)
+                {
+                    strmOut.Write(byBody, 0, iBytesRead);
+                }
+                sBody.Close();
             }
         }
     }
