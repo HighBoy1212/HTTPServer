@@ -33,11 +33,9 @@ namespace GetOptions
             string strAbsolutePath = dictServerConfig["DocumentRoot"] + hrRequest.URI;
             // Get the Content-length (length of body in bytes)
             try {
-                using (FileStream fsBody = File.Open(strAbsolutePath, FileMode.Open, FileAccess.Read))
-                {
-                    int iLength = (int)fsBody.Length;
-                    lstHeaders.Add("Content-Length: " + iLength.ToString());
-                }
+                FileStream fsBody = File.Open(strAbsolutePath, FileMode.Open, FileAccess.Read);
+                int iLength = (int)fsBody.Length;
+                lstHeaders.Add("Content-Length: " + iLength.ToString());               
                 // Dictionary for MIME Types
                 Dictionary<string, string> dictMimes = new Dictionary<string, string>();
                 dictMimes.Add(".htm", "text/html");
@@ -58,7 +56,7 @@ namespace GetOptions
                 {
                     lstHeaders.Add("Content-Type: text/plain");
                 }
-                HTTPResponse Response = new HTTPResponse("HTTP/1.1 200 OK", lstHeaders);
+                HTTPResponse Response = new HTTPResponse("HTTP/1.1 200 OK", lstHeaders, fsBody);
                 return Response;
             }
             catch { 
