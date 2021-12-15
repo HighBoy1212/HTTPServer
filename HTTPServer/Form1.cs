@@ -41,6 +41,7 @@ namespace HTTPServer
                 btnStartStop.Text = "Stop";
                 // Start a thread that listens for TCP connection requests
                 Task.Run(new Action(vListen));
+                rtbLog.AppendText(DateTime.Now.ToString("r") + ": Starting server... \r\n");
             }
             else
             {
@@ -62,6 +63,7 @@ namespace HTTPServer
             IPEndPoint ipeListen = new IPEndPoint(ipaListen, iPortNum);
             socListen.Bind(ipeListen);
             socListen.Listen(5);
+            this.Invoke(new Action<string>(rtbLog.AppendText), DateTime.Now.ToString("r") + ": Starting started \r\n");
             // Run a task that accepts connection requests and processes them
             Task.Run(new Action(vAcceptConnects));
         }
@@ -93,20 +95,22 @@ namespace HTTPServer
             // Receive method needs a stream as a parameter. 
             nsStream = new NetworkStream(socConnection);
             HTTPRequest hrRequest = HTTPRequest.Receive(nsStream);
-
+            // Show request and IP Address in rich textbox
+            string strIP = socConnection.RemoteEndPoint.ToString();
+            this.Invoke(new Action<string>(rtbLog.AppendText), DateTime.Now.ToString("r") + ": " + strIP + "\r\n" + hrRequest.Method + " " + hrRequest.URI + " " + hrRequest.Version + "\r\n");
             // Need to see whether the method is GET, OPTIONS, or neither,
             // call the correct method handler, then send the response to the client
             if (dictPlugins.ContainsKey(hrRequest.Method.ToUpper()))
-            {
+            {           
                 HTTPResponse Response = dictPlugins[hrRequest.Method.ToUpper()].GenResponse(hrRequest, dictPlugins, dictServerConfig);
                 Response.Send(nsStream);
             }
             else
             {
-                string strResponse = "HTTP/1.1 405 Method Not Allowed \r\n Allow:";
+                string strResponse = "HTTP/1.1 405 Method Not Allowed \r\n Connection: close \r\n Date: " + DateTime.Now.ToString("r") + "\r\n Server: " + dictServerConfig["ServerName"] + "\r\n Allow:";
                 foreach(string strKey in dictPlugins.Keys)
                 {
-                    strResponse += strKey + " ";
+                    strResponse += strKey + ", ";
                 }
                 byte[] byResponse = Encoding.ASCII.GetBytes(strResponse);
                 nsStream.Write(byResponse, 0, byResponse.Length);
@@ -145,8 +149,8 @@ namespace HTTPServer
             // Value needs to be whatever we choose to name our server
             dictServerConfig.Add("ServerName", "Final Project");
             // Value needs to be the absolute path of the document root directory
-            // (concatenate the path of the document root to  the URI)
-            dictServerConfig.Add("DocumentRoot", "");
+            // (concatenate the path of the document root to the URI)
+            dictServerConfig.Add("DocumentRoot", "C:\\Users\\Lance\\OneDrive\\Documents\\College\\Computer Science\\Advanced Topics in Computer Science\\HTTPServer\\DocumentRoot");
         }
     }
 }
