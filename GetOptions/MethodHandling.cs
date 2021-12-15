@@ -32,37 +32,38 @@ namespace GetOptions
             // Get the absolute path
             string strAbsolutePath = dictServerConfig["DocumentRoot"] + hrRequest.URI;
             // Get the Content-length (length of body in bytes)
-            try { 
-                FileStream fsBody = File.Open(strAbsolutePath, FileMode.Open, FileAccess.Read);
-                int iLength = (int)fsBody.Length;
-                lstHeaders.Append("Content-Length: " + iLength.ToString());
+            try {
+                using (FileStream fsBody = File.Open(strAbsolutePath, FileMode.Open, FileAccess.Read))
+                {
+                    int iLength = (int)fsBody.Length;
+                    lstHeaders.Add("Content-Length: " + iLength.ToString());
+                }
+                // Dictionary for MIME Types
+                Dictionary<string, string> dictMimes = new Dictionary<string, string>();
+                dictMimes.Add(".htm", "text/html");
+                dictMimes.Add(".html", "text/html");
+                dictMimes.Add(".css", "text/css");
+                dictMimes.Add(".js", "text/javascript");
+                dictMimes.Add(".gif", "image/gif");
+                dictMimes.Add(".jpg", "image/jpeg");
+                dictMimes.Add(".jpeg", "image/jpeg");
+                dictMimes.Add(".png", "image/png");
+                // Get file extension and use dictionary to add Content-Type header
+                string strExtension = Path.GetExtension(strAbsolutePath);
+                if (dictMimes.ContainsKey(strExtension))
+                {
+                    lstHeaders.Add("Content-Type: " + dictMimes[strExtension]);
+                }
+                else
+                {
+                    lstHeaders.Add("Content-Type: text/plain");
+                }
+                HTTPResponse Response = new HTTPResponse("HTTP/1.1 200 OK", lstHeaders);
+                return Response;
             }
             catch { 
                 return new HTTPResponse("HTTP/1.1 404 Not Found", lstHeaders); 
-            }
-            // Dictionary for MIME Types
-            Dictionary<string, string> dictMimes = new Dictionary<string, string>();
-            dictMimes.Add(".htm", "text/html");
-            dictMimes.Add(".html", "text/html");
-            dictMimes.Add(".css", "text/css");
-            dictMimes.Add(".js", "text/javascript");
-            dictMimes.Add(".gif", "image/gif");
-            dictMimes.Add(".jpg", "image/jpeg");
-            dictMimes.Add(".jpeg", "image/jpeg");
-            dictMimes.Add(".png", "image/png");
-            // Get file extension and use dictionary to add Content-Type header
-            string strExtension = Path.GetExtension(strAbsolutePath);
-            if (dictMimes.ContainsKey(strExtension))
-            {
-                lstHeaders.Add("Content-Type: " + dictMimes[strExtension]);
-            }
-            else
-            {
-                lstHeaders.Add("Content-Type: text/plain");
-            }
-
-            HTTPResponse Response = new HTTPResponse("", lstHeaders);
-            return Response;
+            }         
         }
     }
 

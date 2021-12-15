@@ -63,7 +63,7 @@ namespace HTTPServer
             IPEndPoint ipeListen = new IPEndPoint(ipaListen, iPortNum);
             socListen.Bind(ipeListen);
             socListen.Listen(5);
-            this.Invoke(new Action<string>(rtbLog.AppendText), DateTime.Now.ToString("r") + ": Starting started \r\n");
+            this.Invoke(new Action<string>(rtbLog.AppendText), DateTime.Now.ToString("r") + ": Server started \r\n");
             // Run a task that accepts connection requests and processes them
             Task.Run(new Action(vAcceptConnects));
         }
@@ -107,7 +107,7 @@ namespace HTTPServer
             }
             else
             {
-                string strResponse = "HTTP/1.1 405 Method Not Allowed \r\n Connection: close \r\n Date: " + DateTime.Now.ToString("r") + "\r\n Server: " + dictServerConfig["ServerName"] + "\r\n Allow:";
+                string strResponse = "HTTP/1.1 405 Method Not Allowed \r\nConnection: close \r\nDate: " + DateTime.Now.ToString("r") + "\r\nServer: " + dictServerConfig["ServerName"] + "\r\nAllow:";
                 foreach(string strKey in dictPlugins.Keys)
                 {
                     strResponse += strKey + ", ";
@@ -150,7 +150,7 @@ namespace HTTPServer
             dictServerConfig.Add("ServerName", "Final Project");
             // Value needs to be the absolute path of the document root directory
             // (concatenate the path of the document root to the URI)
-            dictServerConfig.Add("DocumentRoot", "C:\\Users\\Lance\\OneDrive\\Documents\\College\\Computer Science\\Advanced Topics in Computer Science\\HTTPServer\\DocumentRoot");
+            dictServerConfig.Add("DocumentRoot", Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName + "\\DocumentRoot");
         }
     }
 }
