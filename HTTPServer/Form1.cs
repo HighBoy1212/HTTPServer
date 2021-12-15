@@ -83,37 +83,46 @@ namespace HTTPServer
                 {
                     return;
                 }
-
             }
         }
 
         // A function that processes requests
-        // CHECK THIS FUNCTION
         private void vProcessRequests(Socket socConnection)
         {
-            // Use the method in HTTPLib to receive and parse the HTTP request
-            // Receive method needs a stream as a parameter. 
-            nsStream = new NetworkStream(socConnection);
-            HTTPRequest hrRequest = HTTPRequest.Receive(nsStream);
-            // Show request and IP Address in rich textbox
-            string strIP = socConnection.RemoteEndPoint.ToString();
-            this.Invoke(new Action<string>(rtbLog.AppendText), DateTime.Now.ToString("r") + ": " + strIP + "\r\n" + hrRequest.Method + " " + hrRequest.URI + " " + hrRequest.Version + "\r\n");
-            // Need to see whether the method is GET, OPTIONS, or neither,
-            // call the correct method handler, then send the response to the client
-            if (dictPlugins.ContainsKey(hrRequest.Method.ToUpper()))
-            {           
-                HTTPResponse Response = dictPlugins[hrRequest.Method.ToUpper()].GenResponse(hrRequest, dictPlugins, dictServerConfig);
-                Response.Send(nsStream);
-            }
-            else
+            try
             {
-                string strResponse = "HTTP/1.1 405 Method Not Allowed \r\nConnection: close \r\nDate: " + DateTime.Now.ToString("r") + "\r\nServer: " + dictServerConfig["ServerName"] + "\r\nAllow:";
-                foreach(string strKey in dictPlugins.Keys)
+                // Use the method in HTTPLib to receive and parse the HTTP request
+                // Receive method needs a stream as a parameter. 
+                nsStream = new NetworkStream(socConnection);
+                HTTPRequest hrRequest = HTTPRequest.Receive(nsStream);
+                // Show request and IP Address in rich textbox
+                string strIP = socConnection.RemoteEndPoint.ToString();
+                this.Invoke(new Action<string>(rtbLog.AppendText), DateTime.Now.ToString("r") + ": " + strIP + "\r\n" + hrRequest.Method + " " + hrRequest.URI + " " + hrRequest.Version + "\r\n");
+                // Need to see whether the method is GET, OPTIONS, or neither,
+                // call the correct method handler, then send the response to the client
+                if (dictPlugins.ContainsKey(hrRequest.Method.ToUpper()))
                 {
-                    strResponse += strKey + ", ";
+                    HTTPResponse Response = dictPlugins[hrRequest.Method.ToUpper()].GenResponse(hrRequest, dictPlugins, dictServerConfig);
+                    Response.Send(nsStream);
                 }
-                byte[] byResponse = Encoding.ASCII.GetBytes(strResponse);
-                nsStream.Write(byResponse, 0, byResponse.Length);
+                else
+                {
+                    string strResponse = "HTTP/1.1 405 Method Not Allowed \r\nConnection: close \r\nDate: " + DateTime.Now.ToString("r") + "\r\nServer: " + dictServerConfig["ServerName"] + "\r\nAllow:";
+                    foreach (string strKey in dictPlugins.Keys)
+                    {
+                        strResponse += strKey + ", ";
+                    }
+                    byte[] byResponse = Encoding.ASCII.GetBytes(strResponse);
+                    nsStream.Write(byResponse, 0, byResponse.Length);
+                }
+                nsStream.Close();
+                nsStream.Dispose();
+                socConnection.Shutdown(SocketShutdown.Both);
+                socConnection.Close();
+                socConnection.Dispose();
+            } catch
+            {
+                return;
             }
         }
 
